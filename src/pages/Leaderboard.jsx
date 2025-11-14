@@ -1,129 +1,158 @@
-// src/pages/Leaderboard.jsx
 import { useEffect, useState } from "react";
 import { db } from "../services/firebase";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { motion } from "framer-motion";
 
 export default function Leaderboard() {
-  const [leaders, setLeaders] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const q = query(
-          collection(db, "users"),
-          orderBy("points", "desc"),
-          limit(10)
-        );
+        const ref = collection(db, "users");
+        const snap = await getDocs(ref);
 
-        const snap = await getDocs(q);
-        const users = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setLeaders(users);
-      } catch (e) {
-        console.error("❌ Leaderboard error:", e);
+        const data = snap.docs.map(doc => {
+          const u = doc.data();
+
+          const bestScore = u.history?.length
+            ? Math.max(...u.history.map(h => h.score ?? 0))
+            : 0;
+
+          return {
+            id: doc.id,
+            name: u.name,
+            photo: u.photo,
+            totalPoints: u.points ?? 0,
+            xp: u.xp ?? 0,
+            level: u.level ?? 1,
+            gamesPlayed: u.gamesPlayed ?? 0,
+            bestScore,
+          };
+        });
+
+        setUsers(data);
+      } catch (err) {
+        console.error("Leaderboard error:", err);
       }
+
       setLoading(false);
     }
 
     load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-yellow-400">
-        Loading NBA Leaderboard...
+      <div className="min-h-screen flex items-center justify-center 
+                      bg-gradient-to-br from-purple-900 via-slate-950 to-yellow-700">
+        <p className="text-yellow-200 animate-pulse">Ielādēju Leaderboard...</p>
       </div>
     );
   }
 
-  if (leaders.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-gray-300">
-        No players yet 😢
-      </div>
-    );
-  }
+  const bestGame = [...users]
+    .sort((a, b) => b.bestScore - a.bestScore)
+    .slice(0, 20);
 
-  const rankStyles = {
-    0: "from-yellow-400 to-yellow-600 border-yellow-500",
-    1: "from-gray-300 to-gray-500 border-gray-400",
-    2: "from-orange-300 to-orange-500 border-orange-400",
-    default: "from-purple-800 to-black border-purple-700",
-  };
+  const grinders = [...users]
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+    .slice(0, 20);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-yellow-700 px-4 py-10 text-white">
-      <motion.h1
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="text-center text-4xl font-extrabold text-yellow-400 tracking-widest mb-10"
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-slate-950 to-yellow-700 px-4 py-10">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="max-w-4xl mx-auto bg-slate-950/80 border border-yellow-400/40
+                   rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.9)] p-8 text-white"
       >
-        🏀 TOP 10 NBA GOATS
-      </motion.h1>
+        {/* HEADER */}
+        <h1 className="text-3xl font-extrabold text-center">
+          👑 Leaderboard Arena
+        </h1>
+        <p className="text-slate-300 text-center mt-1 mb-10 text-sm">
+          Spēcīgākie spēlētāji Quiz Arena NBA režīmā.
+        </p>
 
-      <div className="max-w-2xl mx-auto space-y-4">
-        {leaders.map((u, i) => {
-          const style = rankStyles[i] || rankStyles.default;
+        {/* BEST GAME */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-yellow-300 mb-3">
+            🏆 Labākā viena spēle (max 200)
+          </h2>
 
-          return (
-            <motion.div
-              key={u.id}
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.05 }}
-              className={`
-                p-4 rounded-2xl border backdrop-blur-xl 
-                bg-gradient-to-r ${style}
-                shadow-[0_0_25px_rgba(0,0,0,0.6)]
-                flex justify-between items-center
-              `}
-            >
-              {/* LEFT SIDE */}
-              <div className="flex items-center gap-4">
-                <div className="text-3xl font-extrabold text-black drop-shadow">
+          <div className="space-y-3">
+            {bestGame.map((u, i) => (
+              <motion.div
+                key={u.id}
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-slate-900/70 
+                           border border-slate-800 shadow-lg transition"
+              >
+                <div className="text-2xl font-bold w-10 text-yellow-300">
                   #{i + 1}
                 </div>
 
                 <img
-                  src={u.photo || "/default-avatar.png"}
-                  className={`
-                    w-14 h-14 rounded-full border-4 
-                    ${i === 0 ? "border-yellow-300" : ""}
-                    ${i === 1 ? "border-gray-300" : ""}
-                    ${i === 2 ? "border-orange-400" : ""}
-                  `}
+                  src={u.photo}
+                  className="w-12 h-12 rounded-full border border-yellow-300/30 shadow"
                 />
 
-                <div>
-                  <p className="text-lg font-bold">
-                    {u.name || "Anonīms"}
-                  </p>
-                  <p className="text-xs text-gray-200">
-                    {u.email}
+                <div className="flex-1">
+                  <p className="font-semibold text-white">{u.name}</p>
+                  <p className="text-xs text-slate-400">
+                    Spēles: {u.gamesPlayed} | Līmenis: {u.level}
                   </p>
                 </div>
-              </div>
 
-              {/* RIGHT SIDE */}
-              <div className="text-right">
-                <p className="text-xl font-extrabold text-yellow-300">
-                  {u.points ?? 0} pts
-                </p>
-                <p className="text-sm text-gray-200">
-                  XP: {u.xp ?? 0}
-                </p>
-                <p className="text-sm text-gray-200">
-                  💰 {u.coins ?? 0}
-                </p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                <div className="text-xl font-bold text-yellow-400">
+                  {u.bestScore}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* GRINDERS */}
+        <section>
+          <h2 className="text-xl font-bold text-yellow-300 mb-3">
+            🔥 Grind Masters (kopējie punkti)
+          </h2>
+
+          <div className="space-y-3">
+            {grinders.map((u, i) => (
+              <motion.div
+                key={u.id}
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-slate-900/70 
+                           border border-slate-800 shadow-lg transition"
+              >
+                <div className="text-2xl font-bold w-10 text-yellow-300">
+                  #{i + 1}
+                </div>
+
+                <img
+                  src={u.photo}
+                  className="w-12 h-12 rounded-full border border-yellow-300/30 shadow"
+                />
+
+                <div className="flex-1">
+                  <p className="font-semibold text-white">{u.name}</p>
+                  <p className="text-xs text-slate-400">
+                    XP: {u.xp} | Līmenis: {u.level}
+                  </p>
+                </div>
+
+                <div className="text-xl font-bold text-yellow-400">
+                  {u.totalPoints}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </motion.div>
     </div>
   );
 }
