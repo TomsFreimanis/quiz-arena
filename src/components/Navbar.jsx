@@ -1,48 +1,47 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
-
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-[#0a0d14] text-white px-6 py-4 shadow-lg">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
+    <nav className="w-full bg-[#0A0D1F] text-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-          <span className="text-orange-400 text-2xl">🏀</span> NBA QUIZ
+          🏀 <span>NBA QUIZ</span>
         </Link>
 
-        {/* Desktop menu */}
-        <div className="hidden md:flex gap-6 text-lg">
-          <Link to="/" className="hover:text-orange-400">Home</Link>
-          <Link to="/quiz-start" className="hover:text-orange-400">Quiz</Link>
-          <Link to="/leaderboard" className="hover:text-orange-400">Leaderboard</Link>
-          <Link to="/achievements" className="hover:text-orange-400">Achievements</Link>
-          <Link to="/store" className="hover:text-orange-400">Store</Link>
-          <Link to="/profile" className="hover:text-orange-400">Profile</Link>
-        </div>
-
-        {/* Hamburger icon */}
+        {/* Mobile menu button */}
         <button
-          className="md:hidden"
+          className="md:hidden text-white"
           onClick={() => setOpen(!open)}
         >
           {open ? <X size={28} /> : <Menu size={28} />}
         </button>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex gap-8 text-lg font-medium">
+          <Link className="hover:text-yellow-400" to="/">Home</Link>
+          <Link className="hover:text-yellow-400" to="/quiz-start">Quiz</Link>
+          <Link className="hover:text-yellow-400" to="/leaderboard">Leaderboard</Link>
+          <Link className="hover:text-yellow-400" to="/achievements">Achievements</Link>
+          <Link className="hover:text-yellow-400" to="/store">Store</Link>
+          <Link className="hover:text-yellow-400" to="/profile">Profile</Link>
+        </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile Menu */}
       {open && (
-        <div className="md:hidden mt-4 bg-[#131722] rounded-lg p-4 flex flex-col gap-4 text-lg shadow-md">
-          <Link to="/" className="hover:text-orange-400" onClick={() => setOpen(false)}>Home</Link>
-          <Link to="/quiz-start" className="hover:text-orange-400" onClick={() => setOpen(false)}>Quiz</Link>
-          <Link to="/leaderboard" className="hover:text-orange-400" onClick={() => setOpen(false)}>Leaderboard</Link>
-          <Link to="/achievements" className="hover:text-orange-400" onClick={() => setOpen(false)}>Achievements</Link>
-          <Link to="/store" className="hover:text-orange-400" onClick={() => setOpen(false)}>Store</Link>
-          <Link to="/profile" className="hover:text-orange-400" onClick={() => setOpen(false)}>Profile</Link>
+        <div className="md:hidden bg-[#0A0D1F] border-t border-white/10 flex flex-col p-4 text-center gap-4 text-lg">
+          <Link onClick={() => setOpen(false)} to="/">Home</Link>
+          <Link onClick={() => setOpen(false)} to="/quiz-start">Quiz</Link>
+          <Link onClick={() => setOpen(false)} to="/leaderboard">Leaderboard</Link>
+          <Link onClick={() => setOpen(false)} to="/achievements">Achievements</Link>
+          <Link onClick={() => setOpen(false)} to="/store">Store</Link>
+          <Link onClick={() => setOpen(false)} to="/profile">Profile</Link>
         </div>
       )}
     </nav>

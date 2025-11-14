@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* src/index.css */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0a0b15; /* tumšais fons */
+}
+
+* {
+  box-sizing: border-box;
+}
